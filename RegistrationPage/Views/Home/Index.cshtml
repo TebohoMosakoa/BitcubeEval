@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+    <div class="text-center">
+        <h1 class="display-4">Welcome</h1>
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <button type="button" class="btn btn-danger"><a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Click Here to Register</a></button>
+        }
+        else
+        {
+            <p>Successfully Registered</p>
+        }
+
+    </div>
