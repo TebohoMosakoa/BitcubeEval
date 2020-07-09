@@ -1,0 +1,19 @@
+﻿@model IEnumerable<RegistrationPage.Areas.Identity.Data.RegistrationPageUser>
+@{
+    ViewData["Title"] = "Friends";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+    <div class="text-center">
+        <h1 class="display-4">Friends</h1>
+        @foreach (var user in Model)
+        {
+            <div class="card" style="width: 100%; position:center">
+                <div class="card-body">
+                    <h5 class="card-title">Email: @user.Email</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Name: @user.LastName @user.FirstName</h6>
+                    <p class="card-text">Username: @user.UserName</p>
+                </div>
+            </div>
+        }
+    </div>
