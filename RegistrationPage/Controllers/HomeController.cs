@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RegistrationPage.Areas.Identity.Data;
 using RegistrationPage.Models;
+using RegistrationPage.ViewModels;
 
 namespace RegistrationPage.Controllers
 {
@@ -16,12 +17,13 @@ namespace RegistrationPage.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<RegistrationPageUser> _userManager;
-        
+        private readonly SignInManager<RegistrationPageUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<RegistrationPageUser> userManager)
+        public HomeController(ILogger<HomeController> logger, UserManager<RegistrationPageUser> userManager, SignInManager<RegistrationPageUser> signInManager)
         {
             _logger = logger;
             _userManager = userManager;
+            _signInManager = signInManager;
         }
         public IActionResult Index()
         {
@@ -38,6 +40,74 @@ namespace RegistrationPage.Controllers
             var users = _userManager.Users; 
             return View(users);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            var model = new EditViewModel
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(EditViewModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+
+            user.Email = model.Email;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if(result.Succeeded)
+            {
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if(ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                if(!result.Succeeded)
+                {
+                    foreach(var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return View();
+                }
+                await _signInManager.RefreshSignInAsync(user);
+                return View("PasswordChangeConfirmed");
+            }
+            return View(model);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
