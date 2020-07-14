@@ -16,13 +16,15 @@ namespace RegistrationPage.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly RegistrationPageDbContext _context;
         private readonly UserManager<RegistrationPageUser> _userManager;
         private readonly SignInManager<RegistrationPageUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<RegistrationPageUser> userManager, SignInManager<RegistrationPageUser> signInManager)
+        public HomeController(ILogger<HomeController> logger, UserManager<RegistrationPageUser> userManager,RegistrationPageDbContext context, SignInManager<RegistrationPageUser> signInManager)
         {
             _logger = logger;
             _userManager = userManager;
+            _context = context;
             _signInManager = signInManager;
         }
         public IActionResult Index()
@@ -35,10 +37,96 @@ namespace RegistrationPage.Controllers
             RegistrationPageUser user = _userManager.FindByIdAsync(userId).Result;
             return View(user);
         }
+
+        public IActionResult Users()
+        {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var users = _userManager.Users.Where(x => x.Id != userId);
+            return View(users);
+        }
+
         public IActionResult Friends()
         {
-            var users = _userManager.Users; 
-            return View(users);
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var friends = _context.User_Friends.Where(x => x.is_accepted == true && (x.Friend_Id == userId || x.User_Id == userId));
+            List<string> friendIds = new List<string>();
+            List<RegistrationPageUser> userFriends = new List<RegistrationPageUser>();
+            foreach(var friend in friends)
+            {
+                if(userId == friend.Friend_Id)
+                {
+                    friendIds.Add(friend.User_Id);
+                }
+                else
+                {
+                    friendIds.Add(friend.Friend_Id);
+                }
+            }
+            foreach(var userFriendId in friendIds)
+            {
+                RegistrationPageUser user = _userManager.FindByIdAsync(userFriendId).Result;
+                userFriends.Add(user);
+            }
+            return View(userFriends);
+        }
+
+        public IActionResult Invite(string id)
+        {
+            var newFriend = new User_Friends();
+            newFriend.Friend_Id = id;
+            newFriend.User_Id = _userManager.GetUserId(HttpContext.User);
+            newFriend.is_accepted = false;
+            _context.User_Friends.Add(newFriend);
+            _context.SaveChanges();
+            return RedirectToAction("Users");
+        }
+
+        [HttpGet]
+        public IActionResult Invites()
+        {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var invites = _context.User_Friends.Where(x => x.is_accepted == false && ( x.Friend_Id == userId || x.User_Id == userId));
+            List<string> friendIds = new List<string>();
+            List<RegistrationPageUser> userInvites = new List<RegistrationPageUser>();
+            foreach (var friend in invites)
+            {
+                if (userId == friend.Friend_Id)
+                {
+                    friendIds.Add(friend.User_Id);
+                }
+                else
+                {
+                    friendIds.Add(friend.Friend_Id);
+                }
+            }
+            foreach (var userFriendId in friendIds)
+            {
+                RegistrationPageUser user = _userManager.FindByIdAsync(userFriendId).Result;
+                userInvites.Add(user);
+            }
+            return View(userInvites);
+        }
+
+        public IActionResult Accept(string id)
+        {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var invite = _context.User_Friends.Where(x => x.User_Id == id && x.Friend_Id == userId).FirstOrDefault();
+            invite.is_accepted = true;
+
+            _context.User_Friends.Update(invite);
+            _context.SaveChanges();
+            return RedirectToAction("Invites");
+        }
+
+        public IActionResult Deny(string id)
+        {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var invite = _context.User_Friends.Where(x => x.User_Id == id && x.Friend_Id == userId).FirstOrDefault();
+            invite.is_accepted = false;
+
+            _context.User_Friends.Remove(invite);
+            _context.SaveChanges();
+            return RedirectToAction("Invites");
         }
 
         [HttpGet]

@@ -16,6 +16,8 @@ namespace RegistrationPage.Models
         {
         }
 
+        public DbSet<User_Friends> User_Friends { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

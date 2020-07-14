@@ -10,8 +10,8 @@ using RegistrationPage.Models;
 namespace RegistrationPage.Migrations
 {
     [DbContext(typeof(RegistrationPageDbContext))]
-    [Migration("20200706194631_Initial")]
-    partial class Initial
+    [Migration("20200714172107_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -227,6 +227,27 @@ namespace RegistrationPage.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers");
+                });
+
+            modelBuilder.Entity("RegistrationPage.Models.User_Friends", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Friend_Id")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("User_Id")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("is_accepted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User_Friends");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

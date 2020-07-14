@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using RegistrationPage.Models;
 
 namespace RegistrationPage.Areas.Identity.Data
 {
@@ -14,5 +15,6 @@ namespace RegistrationPage.Areas.Identity.Data
         public string FirstName { get; set; }
         [Required]
         public string LastName { get; set; }
+
     }
 }
